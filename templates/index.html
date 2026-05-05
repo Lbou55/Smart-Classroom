@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="dashboard_title">SmartClassroom — IoT Intelligence</title>
+  <script>(function(){ document.documentElement.setAttribute('data-theme', localStorage.getItem('sc-theme')||'thermal-dark'); })();</script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+  <style>
+    body { display:flex;align-items:center;justify-content:center;min-height:100vh;padding:30px 20px;background:var(--bg-app); }
+
+    .bg-blobs { position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0; }
+    .blob { position:absolute;border-radius:50%;filter:blur(100px);opacity:0.08;animation:float-blob 15s ease-in-out infinite; }
+    .blob-1 { width:600px;height:600px;background:var(--accent);top:-200px;left:50%;transform:translateX(-50%); }
+    .blob-2 { width:400px;height:400px;background:var(--accent-2);bottom:-100px;right:-100px;animation-delay:-7s; }
+    @keyframes float-blob { 0%,100%{transform:translate(-50%,0);} 50%{transform:translate(-50%,-30px);} }
+
+    .hero {
+      position:relative;z-index:1;
+      width:100%;max-width:1000px;
+      text-align:center;
+    }
+
+    .hero-icon {
+      width:72px;height:72px;
+      background:var(--accent);
+      border-radius:22px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:2rem;
+      margin:0 auto 24px;
+      box-shadow:var(--accent-glow), 0 8px 32px rgba(0,0,0,0.3);
+      animation:float-icon 4s ease-in-out infinite;
+    }
+    @keyframes float-icon { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+
+    h1 {
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      color: var(--text-1);
+      letter-spacing: -0.03em;
+      margin-bottom: 14px;
+      line-height: 1.1;
+    }
+    h1 .accent { color: var(--accent); }
+
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--text-2);
+      margin-bottom: 40px;
+      font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+      text-align: left;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 20px;
+      transition: all var(--t);
+      position: relative; overflow: hidden;
+    }
+    .feature-card::before {
+      content:'';position:absolute;top:0;left:0;right:0;height:2px;
+      background:linear-gradient(90deg,var(--accent),var(--accent-2));
+      opacity:0;transition:opacity var(--t);
+    }
+    .feature-card:hover { border-color:var(--border-focus);transform:translateY(-4px);box-shadow:var(--accent-glow); }
+    .feature-card:hover::before { opacity:1; }
+
+    .feature-icon {
+      width:40px;height:40px;background:var(--accent-dim);border-radius:var(--r-md);
+      display:flex;align-items:center;justify-content:center;
+      color:var(--accent);font-size:1.1rem;margin-bottom:14px;
+    }
+    .feature-card h3 { font-size:0.9rem;font-weight:700;color:var(--text-1);margin-bottom:6px; }
+    .feature-card p  { font-size:0.78rem;color:var(--text-2);line-height:1.6; }
+
+    .cta-row { display:flex;gap:12px;justify-content:center;flex-wrap:wrap; }
+    .btn-lg  { padding:12px 28px;font-size:0.92rem; }
+
+    .footer {
+      margin-top:40px;padding-top:20px;
+      border-top:1px solid var(--border);
+      font-size:0.72rem;color:var(--text-3);
+      font-family:var(--font-mono);letter-spacing:0.04em;
+    }
+
+    .feature-card:nth-child(1){animation:card-in 0.5s 0.1s both;}
+    .feature-card:nth-child(2){animation:card-in 0.5s 0.2s both;}
+    .feature-card:nth-child(3){animation:card-in 0.5s 0.3s both;}
+    .feature-card:nth-child(4){animation:card-in 0.5s 0.4s both;}
+    @keyframes card-in { from{opacity:0;transform:translateY(16px);} to{opacity:1;transform:translateY(0);} }
+  </style>
+</head>
+<body>
+  <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div></div>
+
+  <div class="hero">
+    <div class="hero-icon">🌡️</div>
+    <h1>Smart<span class="accent">Classroom</span></h1>
+    <div class="hero-sub" data-i18n="hero_sub">IoT · AI · Real-Time Monitoring · Automation</div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-thermometer-half"></i></div>
+        <h3 data-i18n="feature1_title">Real-Time Monitoring</h3>
+        <p data-i18n="feature1_desc">Live temperature, humidity, and motion tracking via BME280 and PIR sensors connected to ESP32.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-brain"></i></div>
+        <h3 data-i18n="feature2_title">AI Temperature Forecast</h3>
+        <p data-i18n="feature2_desc">SGD Regression model predicts room temperature 10 minutes ahead for proactive climate control.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-id-card"></i></div>
+        <h3 data-i18n="feature3_title">RFID Occupancy</h3>
+        <p data-i18n="feature3_desc">Track classroom occupancy precisely with RFID-based people counting in real time.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-wind"></i></div>
+        <h3 data-i18n="feature4_title">Auto AC Control</h3>
+        <p data-i18n="feature4_desc">AI-driven AC automation: turns on/off based on predicted temperature thresholds.</p>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <a href="/login"  class="btn btn-primary btn-lg"><i class="fas fa-sign-in-alt"></i> <span data-i18n="sign_in">Sign In</span></a>
+      <a href="/signup" class="btn btn-ghost   btn-lg"><i class="fas fa-user-plus"></i> <span data-i18n="create_account">Create Account</span></a>
+    </div>
+
+    <div class="footer"><span data-i18n="footer_text">© 2024 SmartClassroom &nbsp;·&nbsp; ESP32 + Flask + Firebase + AI</span></div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/themes.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/lang.js') }}"></script>
+</body>
+</html>

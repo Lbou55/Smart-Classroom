@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="signup_title">Sign Up — SmartClassroom</title>
+  <script>(function(){ document.documentElement.setAttribute('data-theme', localStorage.getItem('sc-theme')||'thermal-dark'); })();</script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+  <style>
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh; background:var(--bg-app); padding:20px; }
+    .bg-blobs { position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0; }
+    .blob { position:absolute;border-radius:50%;filter:blur(80px);opacity:0.1;animation:float-blob 12s ease-in-out infinite; }
+    .blob-1 { width:350px;height:350px;background:var(--accent);top:-80px;left:-80px; }
+    .blob-2 { width:280px;height:280px;background:var(--accent-2);bottom:-60px;right:-60px;animation-delay:-6s; }
+    @keyframes float-blob { 0%,100%{transform:translate(0,0);} 50%{transform:translate(20px,-20px);} }
+
+    .auth-card {
+      position:relative;z-index:1;
+      width:100%;max-width:420px;
+      background:var(--bg-card);
+      border:1px solid var(--border);
+      border-radius:var(--r-xl);
+      padding:32px 28px;
+      box-shadow:0 12px 48px rgba(0,0,0,0.4), var(--accent-glow);
+      animation:card-in 0.5s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes card-in { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+
+    .back-link { margin-bottom:16px; }
+    .back-link a { font-size:0.78rem;color:var(--text-3);font-family:var(--font-mono);display:inline-flex;align-items:center;gap:6px;transition:color var(--t); }
+    .back-link a:hover { color:var(--accent); }
+
+    .auth-header { margin-bottom:24px; }
+    .auth-header h1 { font-size:1.4rem;font-weight:800;color:var(--text-1);margin-bottom:4px; }
+    .auth-header p  { font-size:0.82rem;color:var(--text-2); }
+
+    .strength-bar { margin-top:5px;font-size:0.72rem;font-family:var(--font-mono); }
+    .strength-weak   { color:var(--red); }
+    .strength-medium { color:var(--yellow); }
+    .strength-strong { color:var(--green); }
+    .match-ok  { color:var(--green);font-size:0.72rem;font-family:var(--font-mono);margin-top:4px; }
+    .match-err { color:var(--red);font-size:0.72rem;font-family:var(--font-mono);margin-top:4px; }
+
+    .login-link { text-align:center;margin-top:18px;padding-top:16px;border-top:1px solid var(--border);font-size:0.82rem;color:var(--text-2); }
+    .login-link a { color:var(--accent);font-weight:600; }
+
+    select.form-input { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"); background-repeat:no-repeat;background-position:right 12px center; }
+  </style>
+</head>
+<body>
+  <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div></div>
+
+  <div class="auth-card">
+    <div class="back-link"><a href="/"><i class="fas fa-arrow-left"></i> <span data-i18n="back_to_home">Back to home</span></a></div>
+
+    <div class="auth-header">
+      <h1 data-i18n="create_account_title">Create account</h1>
+      <p data-i18n="create_account_sub">Join the SmartClassroom network</p>
+    </div>
+
+    <div id="message" class="msg-bar" style="margin-bottom:14px;"></div>
+
+    <div class="form-group">
+      <label class="form-label" data-i18n="full_name_label">Full Name</label>
+      <div class="input-wrap">
+        <i class="fas fa-user input-icon"></i>
+        <input type="text" id="name" class="form-input" data-i18n-placeholder="full_name_placeholder" placeholder="Your name" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" data-i18n="email_address">Email Address</label>
+      <div class="input-wrap">
+        <i class="fas fa-envelope input-icon"></i>
+        <input type="email" id="email" class="form-input" data-i18n-placeholder="email_placeholder" placeholder="you@example.com" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" data-i18n="password">Password</label>
+      <div class="input-wrap">
+        <i class="fas fa-lock input-icon"></i>
+        <input type="password" id="password" class="form-input" data-i18n-placeholder="password_placeholder_password" placeholder="Min. 6 characters" required>
+      </div>
+      <div id="strengthBar" class="strength-bar"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" data-i18n="confirm_password">Confirm Password</label>
+      <div class="input-wrap">
+        <i class="fas fa-lock input-icon"></i>
+        <input type="password" id="confirmPassword" class="form-input" data-i18n-placeholder="confirm_password_placeholder" placeholder="Repeat password" required>
+      </div>
+      <div id="matchBar"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" data-i18n="role_select">Role</label>
+      <div class="input-wrap">
+        <i class="fas fa-id-badge input-icon"></i>
+        <select id="role" class="form-input">
+          <option value="user" data-i18n="role_user">User</option>
+          <option value="admin" data-i18n="role_admin">Admin</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="signupBtn" onclick="doSignup()" style="width:100%;justify-content:center;">
+      <i class="fas fa-user-plus"></i> <span data-i18n="create_account">Create Account</span>
+    </button>
+
+    <div class="login-link"><span data-i18n="already_have_account">Already have an account?</span> <a href="/login" data-i18n="sign_in_link">Sign in</a></div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <script src="{{ url_for('static', filename='js/themes.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/signup.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/lang.js') }}"></script>
+  <script>
+    // Helper to get current language
+    function getCurrentLang() {
+      return localStorage.getItem('sc-lang') || 'en';
+    }
+
+    function showMsg(text, type) {
+      const el = document.getElementById('message');
+      el.textContent = text;
+      el.className = `msg-bar show ${type}`;
+      setTimeout(() => el.classList.remove('show'), 4000);
+    }
+
+    // Translate password strength and match messages
+    function updateStrengthMessage(level, message) {
+      const bar = document.getElementById('strengthBar');
+      bar.textContent = message;
+      if (level === 'weak') bar.className = 'strength-bar strength-weak';
+      else if (level === 'medium') bar.className = 'strength-bar strength-medium';
+      else if (level === 'strong') bar.className = 'strength-bar strength-strong';
+      else bar.className = 'strength-bar';
+    }
+
+    function updateMatchMessage(ok) {
+      const bar = document.getElementById('matchBar');
+      if (!bar) return;
+      const lang = getCurrentLang();
+      if (ok) {
+        bar.textContent = (lang === 'fr') ? '✓ Les mots de passe correspondent' : '✓ Passwords match';
+        bar.className = 'match-ok';
+      } else {
+        bar.textContent = (lang === 'fr') ? '✗ Les mots de passe ne correspondent pas' : '✗ Passwords do not match';
+        bar.className = 'match-err';
+      }
+    }
+
+    // Password strength
+    document.getElementById('password').addEventListener('input', function() {
+      const v = this.value;
+      const lang = getCurrentLang();
+      if (!v) { updateStrengthMessage('', ''); return; }
+      let s = 0;
+      if (v.length >= 8) s++;
+      if (/\d/.test(v)) s++;
+      if (/[!@#$%^&*]/.test(v)) s++;
+      if (/[A-Z]/.test(v)) s++;
+      if (v.length < 6) {
+        const msg = (lang === 'fr') ? '❌ Mot de passe trop court (min. 6 caractères)' : '❌ Password too short (min. 6 characters)';
+        updateStrengthMessage('weak', msg);
+        checkMatch();
+        return;
+      }
+      if (s < 2) {
+        const msg = (lang === 'fr') ? '⚠️ Mot de passe faible' : '⚠️ Weak password';
+        updateStrengthMessage('weak', msg);
+      } else if (s < 3) {
+        const msg = (lang === 'fr') ? '📊 Mot de passe moyen' : '📊 Medium password';
+        updateStrengthMessage('medium', msg);
+      } else {
+        const msg = (lang === 'fr') ? '✅ Mot de passe fort' : '✅ Strong password';
+        updateStrengthMessage('strong', msg);
+      }
+      checkMatch();
+    });
+
+    document.getElementById('confirmPassword').addEventListener('input', checkMatch);
+    function checkMatch() {
+      const p = document.getElementById('password').value;
+      const c = document.getElementById('confirmPassword').value;
+      if (!c) { updateMatchMessage(true); return; }
+      updateMatchMessage(p === c);
+    }
+
+    async function doSignup() {
+      const name     = document.getElementById('name').value.trim();
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirm  = document.getElementById('confirmPassword').value;
+      const role     = document.getElementById('role').value;
+      const lang = getCurrentLang();
+
+      if (!name||!email||!password||!confirm) {
+        const msg = (lang === 'fr') ? 'Remplissez tous les champs' : 'Fill in all fields';
+        showMsg(msg, 'error');
+        return;
+      }
+      if (password !== confirm) {
+        const msg = (lang === 'fr') ? 'Les mots de passe ne correspondent pas' : 'Passwords do not match';
+        showMsg(msg, 'error');
+        return;
+      }
+      if (password.length < 6) {
+        const msg = (lang === 'fr') ? 'Mot de passe trop court' : 'Password too short';
+        showMsg(msg, 'error');
+        return;
+      }
+
+      const btn = document.getElementById('signupBtn');
+      btn.disabled = true;
+      const creatingText = (lang === 'fr') ? 'Création…' : 'Creating…';
+      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${creatingText}`;
+
+      try {
+        const res  = await fetch('/api/signup', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,email,password,role}), credentials:'include' });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        const successMsg = (lang === 'fr') ? 'Compte créé ! Redirection vers la connexion…' : 'Account created! Redirecting to login…';
+        showMsg(successMsg, 'success');
+        setTimeout(() => window.location.href='/login', 2000);
+      } catch(e) {
+        const errorMsg = e.message || ((lang === 'fr') ? 'Échec de l\'inscription' : 'Signup failed');
+        showMsg(errorMsg, 'error');
+        btn.disabled = false;
+        const btnText = (lang === 'fr') ? 'Créer un compte' : 'Create Account';
+        btn.innerHTML = `<i class="fas fa-user-plus"></i> ${btnText}`;
+      }
+    }
+
+    // Re-run translation for dynamic messages when language changes
+    window.addEventListener('languageChanged', () => {
+      // Re-trigger strength and match updates
+      const passwordEvent = new Event('input');
+      document.getElementById('password').dispatchEvent(passwordEvent);
+      const confirmEvent = new Event('input');
+      document.getElementById('confirmPassword').dispatchEvent(confirmEvent);
+    });
+  </script>
+</body>
+</html>

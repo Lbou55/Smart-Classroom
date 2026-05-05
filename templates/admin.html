@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="admin_title">Admin — SmartClassroom</title>
+  <script>(function(){ document.documentElement.setAttribute('data-theme', localStorage.getItem('sc-theme')||'thermal-dark'); })();</script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+  <style>
+    .setting-row { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:var(--bg-input); border:1px solid var(--border); border-radius:var(--r-md); margin-bottom:10px; }
+    .setting-row:last-child { margin-bottom:0; }
+    .setting-row strong { font-size:0.88rem; color:var(--text-1); display:block; margin-bottom:2px; }
+    .setting-row small { font-size:0.72rem; color:var(--text-3); font-family:var(--font-mono); }
+    .slider-container { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    input[type="range"] { flex:1; min-width:180px; height:4px; -webkit-appearance:none; background:var(--border); border-radius:2px; outline:none; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--accent); cursor:pointer; box-shadow:var(--accent-glow); border:none; }
+    .threshold-value { font-family:var(--font-mono); font-size:1.1rem; font-weight:700; color:var(--accent); background:var(--bg-card); padding:4px 10px; border-radius:var(--r-md); border:1px solid var(--border); }
+    .export-btn { background:var(--accent-dim); border:1px solid rgba(255,255,255,0.08); }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">🌡️</div>
+      <div>
+        <div class="sidebar-title" data-i18n="nav_dashboard">SmartClassroom</div>
+        <div class="sidebar-subtitle">IoT System</div>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label" data-i18n="nav_main">Main</div>
+      <a class="nav-item" href="/dashboard"><i class="fas fa-tachometer-alt"></i> <span data-i18n="nav_dashboard">Dashboard</span></a>
+      <a class="nav-item" href="/statistics"><i class="fas fa-chart-bar"></i> <span data-i18n="nav_statistics">Statistics</span></a>
+      <a class="nav-item" href="/chat"><i class="fas fa-comments"></i> <span data-i18n="nav_chat">Chat</span></a>
+      <a class="nav-item" href="/profile"><i class="fas fa-user"></i> <span data-i18n="nav_profile">Profile</span></a>
+      <a class="nav-item" href="/blueprints"><i class="fas fa-drafting-compass"></i> <span data-i18n="nav_blueprints">Blueprints</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label" data-i18n="nav_admin">Admin</div>
+      <a class="nav-item active" href="/admin"><i class="fas fa-shield-alt"></i> <span data-i18n="nav_admin_panel">Admin Panel</span></a>
+      <a class="nav-item" href="/settings"><i class="fas fa-users-cog"></i> <span data-i18n="nav_user_mgmt">User Management</span></a>
+      <a class="nav-item" href="/admin/conversations"><i class="fas fa-comment-dots"></i> <span data-i18n="nav_conversations">Conversations</span></a>
+    </div>
+    <div class="sidebar-user" onclick="logout()">
+      <div class="user-avatar" id="sideAvatar">A</div>
+      <div class="user-meta"><div class="user-name" id="sideUserName">Loading…</div><div class="user-role">Administrator</div></div>
+      <button class="icon-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <div class="topbar">
+      <div><div class="topbar-title" data-i18n="admin_title">Admin Panel</div><div class="topbar-sub" data-i18n="admin_sub">System controls · AC automation · Data export</div></div>
+    </div>
+    <div class="page-content">
+      <div id="message" class="msg-bar" style="margin-bottom:14px;"></div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header"><div class="card-title"><i class="fas fa-wind"></i> <span data-i18n="ac_control_title">AC Control</span> <span class="badge badge-blue" id="modeBadge" data-i18n="auto_badge">AUTO</span></div></div>
+        <div class="setting-row"><div><strong data-i18n="ai_auto_mode">AI Auto Mode</strong><small data-i18n="ai_auto_desc">Let AI decide based on predicted temperature</small></div><button class="btn btn-secondary" id="modeBtn" onclick="toggleMode()"><i class="fas fa-brain"></i> <span id="modeBtnLabel" data-i18n="ai_controlling">AI is controlling</span></button></div>
+        <div class="setting-row"><div><strong data-i18n="manual_override">Manual Override</strong><small id="acHint" data-i18n="ac_hint_off">AC is OFF</small></div><label class="switch" id="acSwitchWrap"><input type="checkbox" id="acSwitch" onchange="onACSwitch()"><span class="knob"></span></label></div>
+      </div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header"><div class="card-title"><i class="fas fa-thermometer-half"></i> <span data-i18n="ac_threshold_title">AC Temperature Threshold</span></div></div>
+        <div class="setting-row"><div><strong data-i18n="threshold">Trigger temperature</strong><small data-i18n="threshold_desc">AC turns ON when temperature (predicted) reaches this value</small></div><div class="slider-container"><input type="range" id="thresholdSlider" min="10" max="30" step="0.5" value="18"><span class="threshold-value" id="thresholdValue">18.0 °C</span><button class="btn btn-primary" onclick="confirmThreshold()" style="padding:6px 16px;"><i class="fas fa-check"></i> <span data-i18n="confirm">Confirm</span></button></div></div>
+      </div>
+      <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-download"></i> <span data-i18n="export_data_title">Export Sensor Data</span></div></div><div class="setting-row"><div><strong data-i18n="export_desc">Download historical readings</strong><small data-i18n="export_desc">All sensor data as CSV (up to last 10,000 records)</small></div><button class="btn btn-primary export-btn" onclick="exportCSV()"><i class="fas fa-file-csv"></i> <span data-i18n="export_csv">Export CSV</span></button></div></div>
+    </div>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/themes.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lang.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script>
+function getInitials(n){ return n ? n.split(' ').map(x=>x[0]).join('').toUpperCase().substring(0,2) : 'A'; }
+async function loadSideUser() { try { const d = await (await fetch('/api/check-session',{credentials:'include'})).json(); document.getElementById('sideUserName').textContent = d.user_name || d.user_email?.split('@')[0] || 'Admin'; document.getElementById('sideAvatar').textContent = getInitials(d.user_name||d.user_email); } catch(e){} }
+async function onACSwitch() { const status = document.getElementById('acSwitch').checked ? 'ON' : 'OFF'; try { const res = await fetch('/api/set-ac',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({status})}); const data = await res.json(); if(data.success){ applyACState(data.status,data.mode); showMessage(`AC turned ${data.status}`,'success'); } else throw new Error(data.error); } catch(e){ showMessage('Error updating AC','error'); } }
+window.showMessage = function(text, type) { const el = document.getElementById('message'); el.textContent = text; el.className = `msg-bar show ${type === 'success' ? 'success' : 'error'}`; setTimeout(() => el.classList.remove('show'), 3000); };
+window.applyACState = function(status, mode) { const sw = document.getElementById('acSwitch'); const wrap = document.getElementById('acSwitchWrap'); const badge = document.getElementById('modeBadge'); const btn = document.getElementById('modeBtn'); const label = document.getElementById('modeBtnLabel'); const hint = document.getElementById('acHint'); const isAuto = mode === 'AUTO'; if (sw) { sw.checked = status === 'ON'; sw.disabled = isAuto; } if (wrap) { wrap.style.opacity = isAuto ? '0.4' : '1'; } if (badge) { badge.textContent = isAuto ? 'AUTO' : 'MANUAL'; badge.className = `badge ${isAuto ? 'badge-blue' : 'badge-yellow'}`; } if (btn) { btn.innerHTML = `<i class="fas fa-brain"></i> <span>${isAuto ? 'AI is controlling' : 'Switch to Auto'}</span>`; } if (hint) { hint.textContent = `AC is ${status}`; hint.style.color = status === 'ON' ? 'var(--green)' : 'var(--text-3)'; } };
+window.toggleMode = async function() { const current = document.getElementById('modeBadge').textContent; try { const body = current === 'AUTO' ? { status: 'OFF' } : { mode: 'AUTO' }; const res = await fetch('/api/set-ac', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify(body) }); const data = await res.json(); if (data.success) { applyACState(data.status, data.mode); showMessage('Mode updated','success'); } else throw new Error(); } catch { showMessage('Error switching mode','error'); } };
+async function loadThreshold() { try { const res = await fetch('/api/get-threshold', { credentials:'include' }); const data = await res.json(); const val = data.threshold || 18; document.getElementById('thresholdSlider').value = val; document.getElementById('thresholdValue').innerHTML = val.toFixed(1) + ' °C'; } catch(e) { console.error(e); } }
+document.getElementById('thresholdSlider').addEventListener('input', function() { document.getElementById('thresholdValue').innerHTML = this.value + ' °C'; });
+window.confirmThreshold = async function() { const val = parseFloat(document.getElementById('thresholdSlider').value); try { const res = await fetch('/api/set-threshold', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify({threshold:val}) }); const data = await res.json(); if (data.success) { showMessage(`Threshold set to ${val}°C`, 'success'); } else throw new Error(data.error); } catch(e) { showMessage('Error setting threshold', 'error'); } };
+window.exportCSV = async function() { try { const res = await fetch('/api/export-csv', { credentials:'include' }); if (!res.ok) throw new Error('Export failed'); const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `sensor_data_${new Date().toISOString().slice(0,19)}.csv`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); showMessage('Export started', 'success'); } catch(e) { showMessage('Export error: ' + e.message, 'error'); } };
+loadSideUser(); loadThreshold();
+</script>
+</body>
+</html>
