@@ -75,13 +75,14 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install flask firebase-admin scikit-learn pandas numpy joblib flask-cors
 
 
-3. Firebase Configuration
-Create a project at Firebase Console
-Enable Realtime Database and Authentication (Email/Password)
-Go to Project Settings → Service Accounts
-Click Generate New Private Key
-Download the JSON file and rename it to service-account-key.json
-Place this file in the project root directory
+3. Firebase Configuration :
+
+Create a project at Firebase Console ;  
+Enable Realtime Database and Authentication (Email/Password) ;
+Go to Project Settings → Service Accounts ;
+Click Generate New Private Key ;
+Download the JSON file and rename it to service-account-key.json ;
+Place this file in the project root directory ;
 
 
 4. Start Flask server :
