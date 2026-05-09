@@ -84,15 +84,15 @@ Download the JSON file and rename it to service-account-key.json
 Place this file in the project root directory
 
 
-4. Start Flask server
+4. Start Flask server :
    python app.py
 
-5. Update Arduino code
+5. Update Arduino code :
    const char* ssid = "YOUR_WIFI_SSID";
    const char* password = "YOUR_WIFI_PASSWORD";
 
    const char* serverName = "http://192.168.X.X:5000/data";
    const char* acUrl = "http://192.168.X.X:5000/ac-command";
 
-6. Testing without Hardware
+6. Testing without Hardware :
    python simulate_sensors.py
