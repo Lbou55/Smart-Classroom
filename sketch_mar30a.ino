@@ -8,12 +8,12 @@
 #include <ArduinoJson.h>
 
 // ===== WiFi =====
-const char* ssid       = "Si Mon3em";
-const char* password   = "12345678x";
+const char* ssid       = "YOUR_WIFI_SSID";
+const char* password   = "YOUR_WIFI_PASSWORD";
 
 // ===== Server =====
-const char* serverName = "http://10.176.67.220:5000/data";
-const char* acUrl      = "http://10.176.67.220:5000/ac-command";
+const char* serverName = "http://192.168.X.X:5000/data";
+const char* acUrl      = "http://192.168.X.X:5000/ac-command";
 
 // ===== RFID pins =====
 #define RST_PIN 2
